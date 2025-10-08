@@ -1,0 +1,12 @@
+SERVER NAME:
+Si está dentro del servidor donde se ejecuta la base de datos:
+
+.
+(local)
+127.0.0.1
+localhost
+
+Se está fuera del servidor (pero en la misma red local):
+
+colocar la dirección IP del servidor
+colocar el nombre de HOST del servidor (name pipe)
