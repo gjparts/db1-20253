@@ -52,4 +52,9 @@ Se agrupan en 4 categorias o grupos:
 	* BEGIN TRANSACTION
 	* COMMIT
 	* ROLLBACK
+
+Los backup o copias de seguridad que se van a restaurar en un servidor de SQL SERVER deben de estar guardados en alguna parte dentro del propio servidor.
+Los backup de SQL Server tienen extension .BAK
+Solo se puede resturar backups realizados en la misma version del servidor de SQL SERVER o anterior a ella.
 */
+
