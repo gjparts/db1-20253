@@ -1,0 +1,12 @@
+Examen 1 Parcial
+Viernes 17 de OCtubre de 2025
+a la hora de clase.
+Tiempo: la hora de la clase
+Formato: Virtual
+Importante: deben encender la camara
+Va a quedar grabado.
+Mecanica del examen va a ser la teoria de los powerPoint que estan en el campus virtual
++ ejercicios rapidos de algebra relacional
++ la parte teorica de SQL SERVER: 00 Historia e introduccion.sql
+
+La parte practica de SQL Server es para el proximo examen.

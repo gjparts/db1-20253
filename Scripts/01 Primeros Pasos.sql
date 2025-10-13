@@ -30,7 +30,7 @@ del bas de datos surta efecto antes de ejecutar otras instrucciones y asi
 evitamos malos entendidos a futuro.*/
 
 --procedimiento almacenado que permite saber que tablas tiene la base de datos actual
-USE tempdb
+USE BaleadasGPT
 GO
 
 sp_tables
@@ -79,4 +79,37 @@ SELECT * FROM AdventureWorks.HumanResources.Employee
 SELECT * FROM AdventureWorks.Production.Illustration
 SELECT * FROM AdventureWorks.Sales.Customer
 --HumanResources, Production y Sales son roles que agrupan tablas (no es tan comun ver esto)
+
+/*IMPORTANTE: El uso de * en SELECT es considerado una mala práctica cuando ya
+se tiene pensando liberar un software a produccion/distribucion. El de * en SELECT
+crea la necesidad por parte del DBMS de ir a consultar que columnas tiene esa tabla
+lo que representa un trabajo adicional que puede consumir recursos de forma innecesaria
+cuya repercusion se siente en escenarios a gran escala.
+Lo correcto en un SELECT es proyectar que columnas va a consultar:*/
+SELECT ProductoID, Codigo, Descripcion, PrecioVenta, CostoPromedio FROM Producto
+SELECT Nombre, Pais, Departamento, Municipio, Comentarios FROM Cliente
+--lo anterior correspone a la operacion de PROYECCION que aprendimos en algebra relacional
+
+--en SQL no es necesario hacer toda la sentencia en una sola linea, puede hacerlas tambien
+--en varios renglones:
+SELECT	ProductoID, Codigo, Descripcion,
+		PrecioVenta, CostoPromedio
+FROM Producto
+
+--seleccionar todas la filas de la tabla Producto pero solo proyecte las columnas
+--Descripcion, Codigo y Comentarios
+SELECT Descripcion, Codigo, Comentarios FROM Producto
+--seleccionar todas las filas de la tabla Producto, proyecte unicamente Descripcion,
+--PrecioVenta y CostoPromedio
+SELECT Descripcion, PrecioVenta, CostoPromedio FROM Producto
+--seleccionar todas las filas de la tabla Cliente, proyecte solo el nombre de cada cliente
+--y la fecha de nacimiento de cada uno
+SELECT Nombre, Nacimiento FROM Cliente
+
+--uso del PUNTO Y COMA -----------------------------------------
+--tambien es posible separar cada sentencia con ;
+--pero en SQL SERVER no es obligatorio, en cambio en algunos clientes
+--de MySQL si obliga a usarlo.
+--en SQL SERVER es muy util para poner dos sentencias en un mismo renglon:
+SELECT * FROM MateriaPrima; SELECT * FROM Cliente; SELECT * FROM Usuario;
 
