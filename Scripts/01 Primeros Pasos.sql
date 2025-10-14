@@ -113,3 +113,68 @@ SELECT Nombre, Nacimiento FROM Cliente
 --en SQL SERVER es muy util para poner dos sentencias en un mismo renglon:
 SELECT * FROM MateriaPrima; SELECT * FROM Cliente; SELECT * FROM Usuario;
 
+--Utilizacion de Alias de columna ---------------------------------
+SELECT	ProductoID as Numero, Codigo, Descripcion as [Nombre del Producto],
+		PrecioVenta as [Precio de Venta], Comentarios as Observaciones
+FROM Producto
+--colocar alias forma parte de RENOMBRAMIENTO en algebra relacional
+--si desea colocar mas de una palabra use corchetes
+--esto no afecta a la base de datos, solo se aplica a la proyeccion.
+
+--Trabajar con valores NULL (nulos)
+SELECT Nombre, Pais, Telefono1
+FROM Cliente
+--no como Telefono1 tiene algunos valores sin llenar (NULL)
+
+--reemplazar NULL por algun valor generico a la hora de la consulta
+--si la columna es de texto entonces debera reemplazarse por un valor de texto:
+SELECT Nombre, Pais, ISNULL(Telefono1,'No tiene') as Telefono1
+FROM Cliente
+--los valores de texto en SQL SERVER van dentro de comillas simples: 'texto'
+--IMPORTANTE: en valor de reemplazo en ISNULL debe tener el mismo tamaño maximo
+--en caracteres que la columna original
+
+--si es columna numerica; entonces debe reemplazarse por un valor numerico
+SELECT title, type, price, ytd_sales
+FROM pubs.dbo.titles
+--note que price y ytd_sales tienen valores nulos
+
+SELECT	title as Libro, type as Tipo,
+		ISNULL(price,0.00) as Precio,
+		ISNULL(ytd_sales,0.00) as [Ventas anuales]
+FROM pubs.dbo.titles
+--IMPORTANTE: en valor de reemplazo en ISNULL debe tener la misma
+--precision numerica que la columna original
+
+--Si es columna de fecha, el valor de reemplazo debe de ser una fecha
+SELECT Nombre, Pais, ISNULL(Nacimiento,'1900-1-1') as Nacimiento
+FROM Cliente
+
+--aplicar ISNULL para generar nueva informacion en una columna es considerado un campo calculado
+
+--CAMPOS CALCULADOS -------------------------------------------------------------------
+--Son columnas que se generan a partir de la aplicacion de funciones o de operaciones matematicas
+--que generan nueva informacion, la cual no queda almacena en la base de datos, ya que es informacion
+--temporal generada unicamente durante la consulta o sea son valores proyectados.
+SELECT	Codigo, Descripcion, CostoPromedio, PrecioVenta,
+		PrecioVenta-CostoPromedio as Utilidad,
+		PrecioVenta*0.15 as [I.S.V.],
+		(PrecioVenta-CostoPromedio)/ProductoID as [Calculo raro], --no es necesario que la columna sea visible para usarla
+		POWER(CostoPromedio,2) as [Costo al cuadrado],
+		SQRT(PrecioVenta) as [Raiz Cuadrada de Venta],
+		CostoPromedio-PrecioVenta as [Costo-Venta],
+		ABS(CostoPromedio-PrecioVenta) as [Valor Absoluto de Costo-Venta],
+		SIN(CostoPromedio) as [Seno del Costo],
+		COS(CostoPromedio) as [Coseno del Costo],
+		TAN(CostoPromedio) as [Tangente del Costo],
+		PI() as [Valor de PI],
+		PI()*POWER(ProductoID,2) as [Area de un Circulo basado en ProductoID],
+		2 as NumeroDos
+FROM Producto
+--IMPORTANTE: se recomienda siempre colocar ALIAS a los campos calculados para evitar confusiones
+
+--Tambien puede combinar el uso de * junto con campos calculados
+SELECT	*, Cantidad*PrecioVenta as SubTotal,
+		Cantidad*PrecioVenta*ISVTasa as ISV,
+		Cantidad*PrecioVenta*(1+ISVTasa) as Total
+FROM FacturaDet
