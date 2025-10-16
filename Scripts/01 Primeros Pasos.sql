@@ -178,3 +178,87 @@ SELECT	*, Cantidad*PrecioVenta as SubTotal,
 		Cantidad*PrecioVenta*ISVTasa as ISV,
 		Cantidad*PrecioVenta*(1+ISVTasa) as Total
 FROM FacturaDet
+
+--PROBLEMAS AL DIVIDIR ENTRE CERO ------------------------------------------
+SELECT	Descripcion, PrecioVenta, CostoPromedio,
+		(PrecioVenta-CostoPromedio)/CostoPromedio*100 as [Porcentaje de ganancia]
+FROM Producto
+--lo anterior da error de division entre cero debido a los productods
+--cuyo costo promedio es cero.
+
+--En SQL SERVER hay diversas formas de evitar este problema.
+--existe una funcion llamada IIF que permite obtener el resultado
+--de un operador ternario; pero esta funcion comenzo a existir a partir
+--de SQL SERVER 2012
+--como se resuelve en versiones anteriores a 2012?
+--1) usar NULLIF (SQL SERVER 2008)
+SELECT	Descripcion, PrecioVenta, CostoPromedio,
+		(PrecioVenta-CostoPromedio)/NULLIF(CostoPromedio,0)*100 as [Porcentaje de ganancia]
+FROM Producto
+--lo anterior indica que si la columna llega a valer 0 entonces su valor sera
+--intercambiado por NULL y cualquier numero operado por NULL su resultado es NULL.
+
+--2) usar IIF (desde SQL SERVER 2012)
+SELECT	Descripcion, PrecioVenta, CostoPromedio,
+		(PrecioVenta-CostoPromedio)/IIF(CostoPromedio <> 0,CostoPromedio,NULL)*100 as [Porcentaje de ganancia]
+FROM Producto
+--en calculos que no se pueden realizar se recomienda el reemplazo por NULL
+
+--3) Activar parametros de servidor (solo para la sesion actual)
+--IMPORTANTE: esto en consultas grandes puede llegar a tener un costo en rendimiento
+SET ARITHABORT OFF --ignora errores en operaciones aritmeticas
+SET ANSI_WARNINGS OFF --deja de mostrar mensajes de advertencia durante la ejecucion
+
+SELECT	Descripcion, PrecioVenta, CostoPromedio,
+		(PrecioVenta-CostoPromedio)/CostoPromedio*100 as [Porcentaje de ganancia]
+FROM Producto
+--lo anterior tambien va a devolver NULL cuando intente una division entre cero
+--pero con mayor costo en recursos
+
+--MUY IMPORANTE: regresar los parametros de servidor a como estaban:
+SET ARITHABORT ON
+SET ANSI_WARNINGS ON
+
+--REDONDEOS ------------------------------------------------------
+--en SQL SERVER existen diversas formas para redondear, yo les voy
+--a explicar cuatro de ellas:
+
+--1) USAR ROUND: aplica redondeo a N decimales; pero siempre mantiene
+--las cifras significativas.
+--Sintaxis: ROUND(Expresion,Decimales)
+SELECT	Descripcion, PrecioVenta,
+		PrecioVenta*0.15 as ISV,
+		ROUND(PrecioVenta*0.15,1) as [ISV a un decimal],
+		ROUND(PrecioVenta*0.15,2) as [ISV a dos decimales]
+FROM Producto
+
+--2) Usar CEILING o FLOOR
+--CEILING: rendodea al entero superior siempre y cuando nos pasemos por milesimas
+--FLOOR: devuelve la parte entera de un numero
+SELECT	Descripcion, CostoPromedio,
+		CEILING(CostoPromedio) as [proximo entero de costo promedio],
+		FLOOR(CostoPromedio) as [parte entera del costo promedio]
+FROM Producto
+
+--3) POR CONVERSION CON CONVERT
+--CONVERT es exclusivo de SQL SERVER se puede usar con dos o tres parametros
+--no mantiene las cifras significativas
+SELECT	Descripcion, PrecioVenta, PrecioVenta*0.15,
+		CONVERT(decimal(12,1), PrecioVenta*0.15) as [ISV a un decimal],
+		CONVERT(decimal(12,2), PrecioVenta*0.15) as [ISV a un decimal]
+FROM Producto
+--DECIMAL(12,2) se refiere a que va a aceptarse 12 digitos y de ellos 2 van a ser
+--decimales.
+
+--4) POR CONVERSION CON CAST
+--Es mas universal (existe en MySQL y ORACLE)
+SELECT	Descripcion, PrecioVenta, PrecioVenta*0.15,
+		CAST(PrecioVenta*0.15 as decimal(12,1)) as [ISV a un decimal],
+		CAST(PrecioVenta*0.15 as decimal(12,2)) as [ISV a un decimal]
+FROM Producto
+
+--otros ejemplos:
+SELECT	Descripcion, CAST(PrecioVenta as decimal(12,1)) as PrecioVenta,
+		CAST(CostoPromedio as decimal(12,1)) as CostoPromedio
+FROM Producto
+
