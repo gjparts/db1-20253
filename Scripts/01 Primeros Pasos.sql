@@ -262,3 +262,34 @@ SELECT	Descripcion, CAST(PrecioVenta as decimal(12,1)) as PrecioVenta,
 		CAST(CostoPromedio as decimal(12,1)) as CostoPromedio
 FROM Producto
 
+--Ejemplo con CAST:
+SELECT	ProductoID, PrecioVenta, Cantidad, ISVTasa,
+		CAST(PrecioVenta*Cantidad as decimal(12,2)) as SubTotal,
+		CAST(PrecioVenta*Cantidad*ISVTasa as decimal(12,2)) as ISV,
+		CAST(PrecioVenta*Cantidad*(1+ISVTasa) as decimal(12,2)) as Total
+FROM FacturaDet
+
+--Ejemplo con CONVERT:
+SELECT	ProductoID, PrecioVenta, Cantidad, ISVTasa,
+		CONVERT(decimal(12,2), PrecioVenta*Cantidad) as SubTotal,
+		CONVERT(decimal(12,2), PrecioVenta*Cantidad*ISVTasa) as ISV,
+		CONVERT(decimal(12,2), PrecioVenta*Cantidad*(1+ISVTasa)) as Total
+FROM FacturaDet
+
+--TERCER PARAMETRO EN CONVERT -------------------------------------------------
+--Recuerden que CONVERT es exclusivo de SQL SERVER
+--Donde mas se le saca provecho al tercer parametro es en columnas Date, DateTime y Time
+SELECT	FacturaID, Total, Fecha
+FROM FacturaCab
+
+--usando CONVERT vamos a dar formatos diferentes a la Fecha
+SELECT	FacturaID, Total, Fecha,
+		CONVERT(varchar,Fecha,101) as [Fecha MDY], --Mes/Dia/Año
+		CONVERT(varchar,Fecha,103) as [Fecha DMY], --Dia/Mes/Año
+		CONVERT(varchar,Fecha,105) as [Fecha DMY con guiones], --Dia-Mes-Año
+		CONVERT(varchar,Fecha,111) as [Fecha YMD], --Año/Mes/Dia
+		CONVERT(varchar,Fecha,108) as [Solo hora]
+FROM FacturaCab
+--En la documentacion oficial de Microsoft encontrara mas codigos de formato:
+--https://learn.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver17
+--CONVERT devolvera una version en texto (varchar) de la conversion de la fecha
