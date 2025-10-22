@@ -101,3 +101,73 @@ SELECT	Descripcion,
 		CHARINDEX('a',Descripcion) as [Letra a]
 FROM Producto
 
+--Funcion REVERSE: invierte un texto ------------------------------------
+SELECT Descripcion, REVERSE(Descripcion)
+FROM Producto
+
+--Siempre recuerde que se pueden combinar varias funciones
+--invertir el Nombre del cliente, convertirlo a minusculas, eliminar los espacios
+--iniciales y finales y reemplazar las letras a por numeros 4
+SELECT REPLACE(TRIM(LOWER(REVERSE(Nombre))),'a','4')
+FROM Cliente
+
+--FUNCIONES DE FECHA Y HORA -------------------------------------------------------------------
+--Saber la fecha y hora del servidor de base de datos
+SELECT GETDATE()
+--en MySQL se utiliza NOW
+
+SELECT Nombre, Pais, GETDATE() as [Fecha/Hora del servidor]
+FROM Proveedor
+
+--Extraer datos de una fecha
+SELECT	Nombre, Nacimiento,
+		YEAR(Nacimiento), MONTH(Nacimiento), DAY(Nacimiento),
+		YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE())
+FROM Cliente
+
+--Funcion DATEPART: extrae datos de una fecha/hora
+SELECT	FacturaID, Fecha,
+		YEAR(Fecha) as Año, MONTH(Fecha) as Mes, DAY(Fecha) as Dia,
+		DATEPART(HOUR,Fecha) as Hora,
+		DATEPART(MINUTE,Fecha) as Minuto,
+		DATEPART(SECOND,Fecha) as Segundo,
+		DATEPART(WEEK,Fecha) as Semana,
+		DATEPART(DAYOFYEAR,Fecha) as [Dia en el año],
+		DATEPART(WEEKDAY,Fecha) as [Dia en la semana]
+FROM FacturaCab
+
+--Crear una fecha a partir de sus componentes ----------------------------------------
+SELECT	DATEFROMPARTS(2020,3,12) as [Fecha de la pandemia],
+		DATEFROMPARTS(1821,9,15) as [Fecha de la indenpencia],
+		DATEFROMPARTS(2025,9,8) as [Inicio de periodo]
+
+--Obtener la diferencia entre dos fechas ----------------------------------------
+--DATEDIFF: primer parametro es el lapso, segundo parametro es fecha inicial,
+--			tercer parametro es fecha final
+SELECT	Nombre, Nacimiento,
+		DATEDIFF(YEAR,Nacimiento,GETDATE()) as Edad,
+		DATEDIFF(MONTH,Nacimiento,GETDATE()) as [Meses de vida],
+		DATEDIFF(DAY,DATEFROMPARTS(2020,3,12),GETDATE()) as [Dias desde la pandemia]
+FROM Cliente
+
+--Otro ejemplo:
+USE Northwind
+GO
+
+SELECT	OrderID, OrderDate, ShippedDate,
+		DATEDIFF(DAY, OrderDate, ShippedDate) as [Dias de completacion],
+		DATEDIFF(HOUR, OrderDate, ShippedDate) as [Horas de completacion]
+FROM Orders
+
+--SUMAR/RESTAR A FECHA/HORA ------------------------------------------------------
+Use pubs
+GO
+
+--a cada empleado se le hace una auditoria a los 45 dias de haber sido contratado: cual es esa fecha?
+SELECT	CONCAT(fname,' ',lname) as Nombre, hire_date as [Fecha de Contratacion],
+		DATEADD(DAY,45,hire_date) as [Hacer auditoria],
+		DATEADD(DAY,-10,hire_date) as [hire_date menos 10 dias],
+		DATEADD(HOUR,-8,hire_date) as [hire_date menos 8 horas],
+		DATEADD(YEAR,5,hire_date) as [fecha contratacion mas 5 años]
+FROM employee
+--valores negativos restan, positivos suman.
