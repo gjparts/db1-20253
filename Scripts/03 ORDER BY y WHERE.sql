@@ -243,3 +243,139 @@ WHERE ProductoID%2 = 0
 SELECT *
 FROM Producto
 WHERE ProductoID%2 = 1
+
+--USO DE OPERADORES LOGICOS --------------------------------------
+--son AND, OR, NOT.
+--Se usa la misma mecanica que en cualquier lenguaje de programacion:
+--* se evaluan de izquierda a derecha
+--* se pueden combinar e incluso se pueden agrupar con parentesis
+--* el orden de precedencia de operadores es: (), NOT, AND, OR
+
+--Productos que lleven la palabra "LLEVAR" y la palabra "MIXT" en cualquier parte de su descripcion
+SELECT ProductoID, Descripcion, Comentarios, PrecioVenta
+FROM Producto
+WHERE Descripcion LIKE '%LLEVAR%' AND Descripcion LIKE '%MIXT%'
+
+--Productos que lleven la palabra "LLEVAR" ó la palabra "MIXT" en cualquier parte de su descripcion
+SELECT ProductoID, Descripcion, Comentarios, PrecioVenta
+FROM Producto
+WHERE Descripcion LIKE '%LLEVAR%' OR Descripcion LIKE '%MIXT%'
+
+--Productos cuyo comentario lleve la palabra "LLEVAR" en cualquier parte y cuyo precio
+--de venta sea mayor o igual a 25
+SELECT ProductoID, Descripcion, PrecioVenta
+FROM Producto
+WHERE Descripcion LIKE '%LLEVAR%' AND PrecioVenta >= 25
+
+--Productos cuyo precio de venta sea mayor o igual a 15 y cuyo precio de venta sea menor o igual a 20
+--Ordenar por precio de venta de menor a mayor
+SELECT ProductoID, Descripcion
+FROM Producto
+WHERE PrecioVenta >= 15 AND PrecioVenta <= 20
+ORDER BY PrecioVenta
+--Observe que no es necesario proyectar la columna sobre la que se ordena y sobre
+--la que se condiciona.
+
+--en SQL exsite un operador llamado BETWEEN que permite mostrar valores
+--que se encuentre comprendidos entre dos rangos, incluyendo los limites:
+
+--Productos cuyo precio de venta sea mayor o igual a 15 y cuyo precio de venta sea menor o igual a 20
+--Ordenar por precio de venta de menor a mayor
+SELECT ProductoID, Descripcion, PrecioVenta
+FROM Producto
+WHERE PrecioVenta BETWEEN 15 AND 20
+ORDER BY PrecioVenta
+
+--Productos cuyo precio este entre 15 y 20 ó entre 50 y 100
+SELECT ProductoID, Descripcion, PrecioVenta
+FROM Producto
+WHERE PrecioVenta BETWEEN 15 AND 20 OR PrecioVenta BETWEEN 50 AND 100
+ORDER BY PrecioVenta
+
+--Productos cuyo costo promedio sea menor a 3 ó cuyo costo promedio sea mayor a 100
+SELECT *
+FROM Producto
+WHERE CostoPromedio < 3 OR CostoPromedio > 100
+
+--Productos cuyo ProductoCategoriaID sea igual a 9 ó cuya descripcion lleve la palabra huevo
+SELECT *
+FROM Producto
+WHERE ProductoCategoriaID = 9 OR Descripcion LIKE '%huevo%'
+
+--USAR EL OPERADOR DINSTITO DE <>
+--Facturas cuyo ClienteID no sea 1 y cuyo ClienteID no sea 3
+SELECT *
+FROM FacturaCab
+WHERE ClienteID <> 1 AND ClienteID <> 3
+
+--Productos cuyo ProductoID sea 8, 11 ó 15
+SELECT *
+FROM Producto
+WHERE ProductoID = 8 OR ProductoID = 11 OR ProductoID = 15
+
+--Esta es otra forma de hacer el problema anterior
+SELECT *
+FROM Producto
+WHERE ProductoID IN (8,11,15)
+
+--OPERADOR NOT
+--A diferencia de <> el operador NOT se usa para cambiar el sentido de una exprresion logica
+--Mostrar las materias primas cuya Unidad de medida no sea Unidad
+SELECT *
+FROM MateriaPrima
+WHERE NOT UnidadMedida = 'Unidad'
+
+--mostrar las materias primas cuya Unidad de medida no sea Libra ó Galon
+SELECT *
+FROM MateriaPrima
+WHERE NOT UnidadMedida = 'Libra' AND NOT UnidadMedida = 'Galón'
+--Recuerde que si el COLLATION de su base de datos es _AS quiere decir
+--que no ignora la tildes (Accent Sensitive)
+
+--otra forma:
+SELECT *
+FROM MateriaPrima
+WHERE NOT UnidadMedida IN ('Libra','Galón')
+
+--otra forma: (usando parentesis)
+SELECT *
+FROM MateriaPrima
+WHERE NOT (UnidadMedida = 'Libra' OR UnidadMedida = 'Galón')
+
+--Combinaciones de operadores logicos -----------------------------------------------------
+--No olviden que los parentesis cambian el sentido de las expresiones
+
+--Mostrar las materias primas cuya unidad de media no sea libra Y cuyo costo promedio ente entre 50 y 70
+--Ordenar por costo promedio.
+SELECT *
+FROM MateriaPrima
+WHERE NOT UnidadMedida = 'Libra' AND ( CostoPromedio >= 50 AND CostoPromedio <= 70 )
+ORDER BY CostoPromedio
+
+--Mostrar las materias primas cuyo precio de compra este entre 5 y 10 ó entre 70 y 90
+--ordenar por precio de compra de mayor a menor
+SELECT *
+FROM MateriaPrima
+WHERE (PrecioCompra >= 5 AND PrecioCompra <= 10) OR (PrecioCompra >= 70 AND PrecioCompra <= 90)
+ORDER BY CostoPromedio
+
+--lo anterior se puede escribir de otra forma:
+SELECT *
+FROM MateriaPrima
+WHERE PrecioCompra BETWEEN 5 AND 10 OR PrecioCompra BETWEEN 70 AND 90
+ORDER BY CostoPromedio
+
+--WHERE CON CAMPOS CALCULADOS ------------------------------------------------
+
+--para la base de datos pubs: mostrar todos los empleados que fueron contratatos en 1990
+--concatenar el primer nombre y el primer apellido en una sola columna llamada name
+--ordene los datos por dicha columna
+SELECT CONCAT(fname,' ',lname) as name, hire_date
+FROM pubs.dbo.employee
+WHERE YEAR(hire_date) = 1990
+ORDER BY 1
+
+--mostrar todos los clientes cuyo mes de nacimiento es Octubre y cuyo dia de nacimimento es 15
+SELECT *
+FROM Cliente
+WHERE MONTH(Nacimiento) = 10 AND DAY(Nacimiento) = 15
