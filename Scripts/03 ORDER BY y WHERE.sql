@@ -1,3 +1,4 @@
+--Gerardo Portillo 20012002049
 USE BaleadasGPT
 GO
 --ORDER BY: permite ordenar la informacion a travea de una o mas columnas
@@ -379,3 +380,85 @@ ORDER BY 1
 SELECT *
 FROM Cliente
 WHERE MONTH(Nacimiento) = 10 AND DAY(Nacimiento) = 15
+
+--mostrar todas las facturas emitidas en el mes de octubre de cualquier dia; pero que esten
+--entre las 3 y 5 PM
+SELECT *
+FROM FacturaCab
+WHERE MONTH(Fecha) = 10 AND DATEPART(HOUR, Fecha) BETWEEN 3 AND 5
+
+--mostrar todas las facturas que hallan generado ganancias de mas de 1000, ordenadas de acuerdo a la ganancia
+--de mayor a menor: debera mostrar FacturaID, Fecha, Total, CostoPromedioTotal y la Ganancia
+SELECT  FacturaID, Fecha, Total, CostoPromedioTotal, Total-CostoPromedioTotal as Ganancia
+FROM FacturaCab
+WHERE Total-CostoPromedioTotal > 1000
+ORDER BY 5 DESC
+
+--Importante en el WHERE NO SE PUEDE usar el ALIAS para referirse a un campp calculado:
+SELECT  FacturaID, Fecha, Total, CostoPromedioTotal, Total-CostoPromedioTotal as Ganancia
+FROM FacturaCab
+WHERE Ganancia > 1000
+ORDER BY 5 DESC
+
+--Mostrar todas las facturas emitidas en Octubre y Noviembre; pero que NO hallan sido
+--generadas a las 8, 11 o 19 horas.
+SELECT *
+FROM FacturaCab
+WHERE MONTH(Fecha) IN (10,11) AND NOT DATEPART(HOUR,Fecha) IN (8,11,19)
+
+--WHERE Y VALORES NULL ------------------------------------------------------
+--IMPORTANTE: los valores NULL no pueden ser comparados con =
+--estos se deben comparar con el operador IS
+
+--Mostrar todos aquellos clientes cuyo Telefono1 sea NULL
+--incorrecto: usar = (no devuelve nada; pero no da error)
+SELECT *
+FROM Cliente
+WHERE Telefono1 = NULL
+
+--correcto: usar IS
+SELECT *
+FROM Cliente
+WHERE Telefono1 IS NULL
+
+--Mostrar los clientes cuyo Telefono1 NO sea NULL
+--forma 1:
+SELECT *
+FROM Cliente
+WHERE Telefono1 IS NOT NULL
+
+--forma 2:
+SELECT *
+FROM Cliente
+WHERE NOT Telefono1 IS NULL
+
+--Mostrar las facturas que tengan valor en UsuarioAnula generadas en el turno A
+SELECT *
+FROM FacturaCab
+WHERE UsuarioAnula IS NOT NULL AND Turno = 'A'
+
+--WHERE con Fecha/Hora ---------------------------------------------------------
+--Mostrar todas las facturas cuya fecha sea el 2 de Septiembre de 2010
+--Forma 1:
+SELECT *
+FROM FacturaCab
+WHERE YEAR(Fecha) = 2010 AND MONTH(Fecha) = 9 AND DAY(Fecha) = 2
+
+--Forma 2: por medio de la conversion de la fecha/hora a un formato unicamente de fecha
+SELECT *
+FROM FacturaCab
+WHERE CAST(Fecha as DATE) = '2010/09/02'
+
+--Y si necesitamos filtrar a cierta hora del dia?
+--Mostrar todas las facturas realizadas el 2 de Septiembre de 2010 a las 9 PM
+--Forma 1: mas larga; pero segura
+SELECT *
+FROM FacturaCab
+WHERE YEAR(Fecha) = 2010 AND MONTH(Fecha) = 9 AND DAY(Fecha) = 2 AND DATEPART(HOUR,Fecha) = 21
+
+--Forma 2: Comparar usando un rango de fecha/hora por medio de BETWEEN
+SELECT *
+FROM FacturaCab
+WHERE Fecha BETWEEN '02/09/2010 21:00:00' AND '02/09/2010 21:59:59'
+
+--SUBCONSULTAS --------------------------------------------------------------------------------
