@@ -462,3 +462,59 @@ FROM FacturaCab
 WHERE Fecha BETWEEN '02/09/2010 21:00:00' AND '02/09/2010 21:59:59'
 
 --SUBCONSULTAS --------------------------------------------------------------------------------
+/*Son consultas que se pueden incrustar dentro de otras consultas.
+-> Siempre van entre parentesis.
+-> Solo deben contener una columna (un campo)
+-> Si no se usan con moderacion pueden llegar a costar muchos recursos y hacer mas
+   lentas las consultas.
+-> Para evitar abusar de la subconsultas es mejor ir pensando en hacer buenas implementaciones
+   de los JOIN los cuales veremos mas adelante.
+
+--Subconsulta que alimenta una lista de seleccion IN----------------------------------------*/
+SELECT *
+FROM Producto
+WHERE ProductoCategoriaID IN ( SELECT ProductoCategoriaID FROM ProductoCategoria WHERE Nombre LIKE '%bebida%' )
+/*En una subconsulta que alimenta una lista de seleccion IN debe unicamente hacerse referencia
+a un campo que tenga relacion con la columna que ejecuta la lista IN. Tanto la columna origen
+como la columna destino deben de ser del mismo tipo de dato o al menos compatible.*/
+
+--Si pone mas de una columna en la subconsulta se generara un error:
+SELECT *
+FROM Producto
+WHERE ProductoCategoriaID IN ( SELECT * FROM ProductoCategoria WHERE Nombre LIKE '%bebida%' )
+--ya que la subconsulta solo debe devolver un campo y no varios (*)
+
+--Columna destino debe de ser de tipo compatible con columna origen, sino habrá error:
+SELECT *
+FROM Producto
+WHERE ProductoCategoriaID IN ( SELECT Descripcion FROM ProductoCategoria WHERE Nombre LIKE '%bebida%' )
+
+--Otro ejemplo:
+--todos los detalles de facturas cuyo productoID en su descripcion tenga la palabra baleada
+SELECT *
+FROM FacturaDet
+WHERE ProductoID IN ( SELECT ProductoID FROM Producto WHERE Descripcion LIKE '%baleada%' )
+ORDER BY ProductoID
+
+--Subconsulta para alimentar un valor en una columna -------------------------------------
+--A esto se le conoce como Escalar o Valor escalar porque la subconsulta debe devolver una fila y una columna TOP(1)
+--En estos casos se recomienda colocar un ALIAS a cada TABLA (Renombramiento).
+
+--Mostrar el codigo y descripcion de todos los productos, ademas de agregar una columna
+--que muestre el nombre de la categoria a la que cada producto pertenece usando subconsultas
+--IMPORTANTE: este problema se puede resolver de forma mas optima usando JOIN.
+SELECT	a.Codigo, a.Descripcion,
+		( SELECT TOP(1) b.Nombre FROM ProductoCategoria as b WHERE a.ProductoCategoriaID = b.ProductoCategoriaID ) as Categoria
+FROM Producto as a
+/*Observem que a la tabla ProductoCategoria en la subconsulta le he colocado un ALIAS el cual es b
+y a Producto le he colocado un ALIAS el cual es a. Esto se hace para que al establecer una relacion entre
+tablas se sepa a que tabla corresponen cada columna en la relación.
+-> En resumen para cada registro en A va a buscar un registro en B que haga MATCH de acuerdo al WHERE
+en la subconsulta.
+-> Abusar de esto cuesta muchos ciclos de CPU y Memoria (use JOIN en su lugar)*/
+
+--Los alias pueden ir sin la palabra AS:
+SELECT	a.Codigo, a.Descripcion,
+		( SELECT TOP(1) b.Nombre FROM ProductoCategoria b WHERE a.ProductoCategoriaID = b.ProductoCategoriaID ) Categoria
+FROM Producto a
+
