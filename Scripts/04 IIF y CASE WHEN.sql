@@ -98,3 +98,97 @@ SELECT	FirstName, LastName,
 FROM AdventureWorks.Person.Person
 ORDER BY 3
 
+/*En la base de datos pubs para la tabla titles se dará un descuento de acuerdo al type
+de cada uno de los libros, la escala a utilizar sera la siguiente:
+	business		10%
+	mod_cook		15%
+	popular_comp	10%
+	psychology		25%
+	trad_cook		15%
+	otros			5%
+Mostrar el title_id, title, type, notes asi como el descuento otorgado para cada libro.
+*/
+SELECT	title_id, title, type, notes,
+		CASE type
+			WHEN 'business'		THEN 0.10
+			WHEN 'mod_cook'		THEN 0.15
+			WHEN 'popular_comp' THEN 0.10
+			WHEN 'psychology'	THEN 0.25
+			WHEN 'trad_cook'	THEN 0.15
+			ELSE				0.05
+		END as [% de descuento]
+FROM pubs.dbo.titles
+
+--Tambien se puede optimizar la estructura anterior agrupando los casos en comun:
+SELECT	title_id, title, type, notes,
+		CASE
+			WHEN type IN ('business','popular_comp')	THEN 0.10
+			WHEN type IN ('mod_cook','trad_cook')		THEN 0.15
+			WHEN type = 'psychology'					THEN 0.25
+			ELSE										0.05
+		END as [% de descuento]
+FROM pubs.dbo.titles
+
+--Ademas que si una estructura CASE WHEN devuelve un valor numerico este se puede operar:
+--Para el ejemplo anterior en lugar de mostrar el % de descuento, mostraremos el precio ya con el descuento
+--y redondeado a dos decimales
+SELECT	title_id, title, type, notes, price,
+		CAST(price-price*
+			CASE
+				WHEN type IN ('business','popular_comp')	THEN 0.10
+				WHEN type IN ('mod_cook','trad_cook')		THEN 0.15
+				WHEN type = 'psychology'					THEN 0.25
+				ELSE										0.05
+			END
+		as decimal(12,2)) as [precio final con descuento]
+FROM pubs.dbo.titles
+
+--CASE WHEN como se vio en el ejemplo anterior se puede combinar con campos calculados
+--otro ejemplo:
+use BaleadasGPT
+go
+
+/*Mostrar el ID, fecha y utilidad para todas las facturas cuyo Estado sea NOR,
+por ultimo muestre una columna llamada Observaciones la cual mostrara un texto
+de acuerdo al rango de utilidad obtenida por factura segun la escala siguiente:
+	menos de CERO						Perdida
+	igual a CERO						No hay ganancia
+	mayor a CERO y menor o igual a 50	Poca ganancia
+	mayor a 50 y menor o igual a 100	Ganancia moderada
+	mayor a 100 y menor o igual a 300	Buenas ganancias
+	mayor a 300							Excelente
+Ordene la informacion de acuerdo a la utilidad de mayor a menor
+*/
+SELECT	FacturaID, Fecha, Total-CostoPromedioTotal as Utilidad,
+		CASE
+			WHEN Total-CostoPromedioTotal < 0 THEN 'Perdida'
+			WHEN Total-CostoPromedioTotal = 0 THEN 'No hay ganancia'
+			WHEN Total-CostoPromedioTotal > 0 AND Total-CostoPromedioTotal <= 50 THEN 'Poca ganancia'
+			WHEN Total-CostoPromedioTotal > 50 AND Total-CostoPromedioTotal <= 100 THEN 'Ganancia moderada'
+			WHEN Total-CostoPromedioTotal > 100 AND Total-CostoPromedioTotal <= 300 THEN 'Buenas ganancias'
+			WHEN Total-CostoPromedioTotal > 300 THEN 'Excelente'
+		END as Observaciones
+FROM FacturaCab
+WHERE Estado = 'NOR'
+ORDER BY 3 DESC
+--En el ejemplo anterior no se necesita ELSE porque ya cubrio todos los escenarios posibles y en
+--caso de tener algun escenario no controlado el valor a devolver sera NULL
+
+/*Otro Ejemplo:
+Para todas las facturas cuyo estado sea NOR muestre el ID, Fecha y Total asi como una columna
+lamada Temporada que indique en que epoca del año fue realizada la venta basados en el Mes de acuerdo
+a la tabla siguiente:
+	Meses					Temporada
+	1 y 8					Temporada baja
+	2						Mes de los enamorados
+	entre 3 y 7				Verano
+	entre 9 y 12			Temporada Navideña*/
+SELECT	FacturaID, CAST(Fecha as Date) as [Fecha sin hora], Total,
+		CASE
+			WHEN MONTH(Fecha) IN (1,8)			THEN 'Temporada baja'
+			WHEN MONTH(Fecha) = 2				THEN 'Mes de los enamorados'
+			WHEN MONTH(Fecha) BETWEEN 3 AND 7	THEN 'Verano'
+			WHEN MONTH(Fecha) BETWEEN 9 AND 12	THEN 'Temporada Navideña'
+		END as Temporada
+FROM FacturaCab
+WHERE Estado = 'NOR'
