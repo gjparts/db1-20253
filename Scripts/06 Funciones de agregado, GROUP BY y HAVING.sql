@@ -67,7 +67,162 @@ SELECT ProductoCategoriaID, COUNT(*) as Productos
 FROM Producto
 GROUP BY ProductoCategoriaID
 
+--Muestre la cantidad de productos facturados por cada productoid mostrando primero el que mas vende
+SELECT ProductoID, COUNT(*)
+FROM FacturaDet
+GROUP BY ProductoID
+ORDER BY 2 DESC
 
+--Cantidad de permisos por cada Modulo, Categoria, SubCategoria
+SELECT Modulo, Categoria, SubCategoria, COUNT(*) as Permisos
+FROM Permiso
+GROUP BY Modulo, Categoria, SubCategoria
 
+--muestre la cantidad de facturas por cada forma de pago que fueron generadas
+--en el año 2011, muestre primero la forma de pago que mas facturas tiene
+SELECT Pago, COUNT(*) as Facturas
+FROM FacturaCab
+GROUP BY Pago
+ORDER BY 2 DESC
 
+--muestre la cantidad de facturas por turno y por cada forma de pago que fueron generadas
+--en el año 2011, muestre primero la combinacion que mas facturas tiene
+SELECT Turno, Pago, COUNT(*) as Facturas
+FROM FacturaCab
+GROUP BY Turno, Pago
+ORDER BY 3 DESC
 
+--tambien se puede tener varias columnas con funciones de agregado:
+SELECT	COUNT(*) as Clientes,
+		COUNT(Nacimiento) as [Clientes con fecha de nacimiento],
+		COUNT(Telefono1) as [Clientes con telefono1]
+FROM Cliente
+--recuerde que COUNT para una columna cuenta los valores que no son NULL
+
+--una variante del anterior: agrupados por Pais
+SELECT	Pais, COUNT(*) as Clientes,
+		COUNT(Nacimiento) as [Clientes con fecha de nacimiento],
+		COUNT(Telefono1) as [Clientes con telefono1]
+FROM Cliente
+GROUP BY Pais
+
+--Trabajemos con otras funciones de agregado
+--Mostrar el total facturado
+SELECT SUM(Total)
+FROM FacturaCab
+
+--Mostrar el total facturado en el año 2011
+SELECT SUM(Total)
+FROM FacturaCab
+WHERE YEAR(Fecha) = 2011
+
+--Muestre el total facturado en 2010 por forma de pago mostrando primero la que mas factura
+SELECT Pago, SUM(Total) as Total
+FROM FacturaCab
+WHERE YEAR(Fecha) = 2010
+GROUP BY Pago
+ORDER BY 2 DESC
+
+--Muestra el total facturado por turno y por usuario ordenado por turno y por total facturado
+SELECT Turno, UsuarioIngresa, SUM(Total) as Total
+FROM FacturaCab
+GROUP BY Turno, UsuarioIngresa
+ORDER BY Turno, 3 DESC
+
+--Tambien es posible usar campos calculados como agrupamiento
+--Muestre el total facturado por año
+SELECT YEAR(Fecha) as Año, SUM(Total) as Total
+FROM FacturaCab
+GROUP BY YEAR(Fecha)
+
+--Muestre el total facturado por año y luego por Mes, ordenado por año y luego por mes
+SELECT YEAR(Fecha) as Año, MONTH(Fecha) as Mes, SUM(Total) as Total
+FROM FacturaCab
+GROUP BY YEAR(Fecha), MONTH(Fecha)
+ORDER BY 1,2
+
+--Tambien es posible combinar las funciones de agregado:
+--Muestre el total facturado por forma de pago mostrando primero la que mas factura
+--asi como la cantidad de facturas que hay en cada forma de pago.
+SELECT Pago, SUM(Total) as Total, COUNT(*) as Facturas
+FROM FacturaCab
+GROUP BY Pago
+ORDER BY 2 DESC
+
+--Muestre el total facturado en 2011 por turno y luego por usuario ordenado por turno y por total descendente
+--ademas de la cantidad de facturas por cada grupo.
+SELECT Turno, UsuarioIngresa, SUM(Total) as Total, COUNT(*) as Facturas
+FROM FacturaCab
+GROUP BY Turno, UsuarioIngresa
+ORDER BY Turno, 2 DESC
+
+--Muestre el total facturado por año y luego por Mes, ordenado por año y luego por mes
+--asi como la cantidad de facturas en cada grupo
+SELECT YEAR(Fecha) as Año, MONTH(Fecha) as Mes, SUM(Total) as Total, COUNT(*) as Facturas
+FROM FacturaCab
+GROUP BY YEAR(Fecha), MONTH(Fecha)
+ORDER BY 1,2
+
+--Ahora veamos ejemplos usando AVG (Promedio o Average) ---------------------------------
+--Obtener el precio de venta promedio de todos los productos
+SELECT AVG(PrecioVenta)
+FROM Producto
+
+--Obtener el promedio de todo lo facturado
+SELECT AVG(Total)
+FROM FacturaCab
+
+--Obtener el promedio de todo lo facturado por año
+SELECT YEAR(Fecha) as Año, AVG(Total) as Promedio
+FROM FacturaCab
+GROUP BY YEAR(Fecha)
+
+--Muestre el total facturado por año y luego por Mes, ordenado por año y luego por mes
+--asi como la cantidad de facturas en cada grupo y el promedio facturado por grupo
+SELECT YEAR(Fecha) as Año, MONTH(Fecha) as Mes, SUM(Total) as Total, COUNT(*) as Facturas, AVG(Total) as Promedio
+FROM FacturaCab
+GROUP BY YEAR(Fecha), MONTH(Fecha)
+ORDER BY 1,2
+
+--Funciones de agregado MAX y MIN -----------------------------------------
+--Mostrar el ultimo numero de factura generado
+SELECT MAX(FacturaID)
+FROM FacturaCab
+
+--Mostrar el ultimo numero de factura generado y en otra columna el numero que le sigue
+SELECT MAX(FacturaID) as Ultima, MAX(FacturaID)+1 as Siguiente
+FROM FacturaCab
+--Importante: se puede realizar operaciones matematicas involucrando funciones de agregado
+
+--Muestre el precio del producto que se vende mas caro y del que se vende mas barato
+SELECT MAX(PrecioVenta) as Caro, MIN(PrecioVenta) as Barato
+FROM Producto
+
+--Muestre el nombre y precio de venta del producto o productos que se venden mas caro
+SELECT Descripcion, PrecioVenta
+FROM Producto
+WHERE PrecioVenta = ( SELECT MAX(PrecioVenta) FROM Producto )
+--Observe que aqui utilicé una subconsulta como las que vimos temas atras
+
+--Combinemos funciones de agregado con campos calculados ---------------------------------
+--Muestre la suma de las utilidades obtenidas para todas las facturas cuyo Estado sea NOR
+SELECT SUM(Total-CostoPromedioTotal) as [Utilidad Total]
+FROM FacturaCab
+WHERE Estado = 'NOR'
+
+--Muestre la suma de las utilidades obtenidas para todas las facturas cuyo Estado sea NOR
+--y agrupadas por Tipo
+SELECT Tipo, SUM(Total-CostoPromedioTotal) as [Utilidad Total]
+FROM FacturaCab
+WHERE Estado = 'NOR'
+GROUP BY Tipo
+
+--Combinar funciones de agregado con CASE WHEN ----------------------------------------------
+/*Para las facturas cuyo estado sea NOR muestre en una columna la suma del total de las facturas
+realizadas en 2010 y en otra columna el total de las facturas realizadas en 2011*/
+SELECT	SUM( CASE WHEN YEAR(Fecha) = 2010 THEN Total ELSE 0.00 END ) as [Facturado en 2010],
+		SUM( CASE WHEN YEAR(Fecha) = 2011 THEN Total ELSE 0.00 END ) as [Facturado en 2011]
+FROM FacturaCab
+WHERE Estado = 'NOR'
+--Observe que dentro de SUM colocamos una toma de decision de lo que se va a sumar de acuerdo
+--al cumplimiento de una condicion.
