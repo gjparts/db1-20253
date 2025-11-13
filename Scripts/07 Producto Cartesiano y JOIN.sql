@@ -262,7 +262,77 @@ el nombre del metodo de envio (ShipMethod) y numero de tarjeta de credito (Credi
 ->	Si alguna de las ordenes no tiene tasa de cambio, metodo de envio o tarjeta de credito
 	siempre deberá ser mostrado.
 -> ordene los registros por fecha
-Tablas: FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI FALTA AQUI
+Tablas: Sales.SalesOrderHeader, Sales.CurrencyRate, Purchasing.ShipMethod, Sales.CreditCard
 */
-SELECT *
-FROM Sales.SalesOrderHeader
+SELECT	a.SalesOrderID, a.OrderDate, a.TotalDue, b.AverageRate as CurrencyRate,
+		c.Name as ShipMethod, d.CardNumber as CreditCard
+FROM Sales.SalesOrderHeader a
+	LEFT JOIN Sales.CurrencyRate b ON a.CurrencyRateID = b.CurrencyRateID
+	LEFT JOIN Purchasing.ShipMethod c ON a.ShipMethodID = c.ShipMethodID
+	LEFT JOIN Sales.CreditCard d ON a.CreditCardID = d.CreditCardID
+WHERE YEAR(a.OrderDate) = 2011 AND MONTH(a.OrderDate) = 8
+ORDER BY a.OrderDate
+
+--Pasemos a la base de datos Northwind
+USE Northwind
+GO
+
+/*Para la tabla Employees de la base de datos Northwind, Muestre en una sola columna el nombre
+y apellido de cada empleado y en otra columna el nombre y apellido del empleado al que debe reportarse
+cada uno,
+-> Si algun empleado no tiene a quien reportar siempre debe ser mostrado.*/
+SELECT	CONCAT(a.FirstName, ' ', a.LastName) as Empleado,
+		CONCAT(b.FirstName, ' ', b.LastName) as [Reporta a]
+FROM Employees a
+	LEFT JOIN Employees b ON a.ReportsTo = b.EmployeeID
+--Observe que estamos relacionado la tabla Employess a si misma en cualquier tipo de JOIN
+
+--RIGHT JOIN --------------------------------------------------------------------------------
+/*casi no usa, devuelve todas las filas de la tabla de la derecha de la relación
+así como las coincidencias de la izquierda de la relación, si no existe coincidencias
+entonces va a devolver valores NULL a la izquierda del resultado.*/
+
+--pasar a la bd AdventureWorks
+USE AdventureWorks
+GO
+
+/*Para la tabla de productos muestre el ProductID, Name, ListPrice y el Name del ProductModel.
+Deberá mostrar todos los modelos aunque no existan producto relacionados con algunos modelos.
+Ordene por nombre de modelo.
+Tablas: Production.Product,  Production.ProductModel*/
+SELECT a.ProductID, a.Name, a.ListPrice, b.Name as ProductModel
+FROM Production.Product a
+	RIGHT JOIN Production.ProductModel b ON a.ProductModelID = b.ProductModelID
+ORDER BY b.Name
+
+--FULL JOIN --------------------------------------------------------------------------------
+/*Devuelve todas las filas: las coincidencias entre izquierda y derecha aí como las no coincidencias
+entre ambos lados las cuales seran mostradas como valores NULL.*/
+
+/*Para la tabla de productos muestre el ProductID, Name, ListPrice y el Name del ProductModel.
+Deberá mostrar todos los MODELOS aunque no existan producto relacionados con algunos modelos,
+asi como muestre todos los PRODUCTOS que no tengan modelo relacionado.
+Tablas: Production.Product,  Production.ProductModel*/
+SELECT a.ProductID, a.Name, a.ListPrice, b.Name as ProductModel
+FROM Production.Product a
+	FULL JOIN Production.ProductModel b ON a.ProductModelID = b.ProductModelID
+/*Observe que se muestran tanto aquellos registros cuyo Model es NULL asi como aquellos
+cuyo Product es NULL y los que tienen relacion.*/
+
+-- CROSS JOIN ------------------------------------------------------------------------------
+/*es el producto cartesiano de dos tablas, une todo y no lleva la clausula ON y no elimina duplicados*/
+--producto cartesiano entre Product y ProductModel
+SELECT a.ProductID, a.Name, a.ListPrice, b.Name as ProductModel
+FROM Production.Product a
+	CROSS JOIN Production.ProductModel b
+
+--observe que al no llevar ON no establece una relacion entre tablas
+--pero siempre puede establecer una relacion a la fuerza por medio de WHERE
+SELECT a.ProductID, a.Name, a.ListPrice, b.Name as ProductModel
+FROM Production.Product a
+	CROSS JOIN Production.ProductModel b
+WHERE a.ProductModelID = b.ProductModelID
+--lo anterior es lo mismo que un INNER JOIN; pero menos práctico.
+
+-- Combinacion de JOINS --------------------------------------------------------
+--es posible combinar diferentes tipos de JOIN en una sola consulta.
