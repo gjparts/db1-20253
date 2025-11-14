@@ -335,4 +335,39 @@ WHERE a.ProductModelID = b.ProductModelID
 --lo anterior es lo mismo que un INNER JOIN; pero menos práctico.
 
 -- Combinacion de JOINS --------------------------------------------------------
---es posible combinar diferentes tipos de JOIN en una sola consulta.
+--es posible combinar diferentes tipos de JOIN en una sola consulta asi como funciones de agregado
+SELECT a.ProductModelID, a.Name as ProductModel, COUNT(b.ProductID) as [Cantidad de Productos]
+FROM Production.ProductModel a
+	LEFT JOIN Production.Product b ON a.ProductModelID = b.ProductModelID
+GROUP BY a.ProductModelID, a.Name
+
+/*De la tabla Sales.SalesOrderHeader en AdventureWorks, para todas las ordenes procesadas en Agosto de 2011:
+muestre el id, fecha de la orden, total, valor de la tasa de cambio (CurrencyRate),
+el nombre del metodo de envio (ShipMethod) y numero de tarjeta de credito (CreditCard)
+-> Si alguna de las ordenes no tiene tasa de cambio o metodo de envio siempre deberá ser mostrado.
+-> Solo deberá mostrar aquellos registros donde existe relacion con la tabla de tarjeta de credito
+-> ordene los registros por fecha
+Tablas: Sales.SalesOrderHeader, Sales.CurrencyRate, Purchasing.ShipMethod, Sales.CreditCard
+*/
+SELECT	a.SalesOrderID, a.OrderDate, a.TotalDue, b.AverageRate as CurrencyRate,
+		c.Name as ShipMethod, d.CardNumber as CreditCard
+FROM Sales.SalesOrderHeader a
+	LEFT JOIN Sales.CurrencyRate b ON a.CurrencyRateID = b.CurrencyRateID
+	LEFT JOIN Purchasing.ShipMethod c ON a.ShipMethodID = c.ShipMethodID
+	INNER JOIN Sales.CreditCard d ON a.CreditCardID = d.CreditCardID
+WHERE YEAR(a.OrderDate) = 2011 AND MONTH(a.OrderDate) = 8
+ORDER BY a.OrderDate
+
+--RELACION POR CAMPOS QUE NO SON LLAVE -------------------
+/*Se puede relacionar entre tablas usando campos que no son llave, por ejemplo
+usando un ranglo de valores en lugar de un ID*/
+--Pasar a otra BD:
+use BaleadasGPT
+GO
+/*Deducir en que turno se realizado cad afactura de acuerdo a los horarios
+definidos en la tabla Turno. Ordene los datos por Fecha.
+Muestre FacturaID, Fecha y Turno en que se realizo*/
+SELECT a.FacturaID, a.Fecha, b.TurnoID
+FROM FacturaCab a
+	LEFT JOIN Turno b ON CAST(a.Fecha AS Time) BETWEEN CAST(b.HoraInicio AS Time) AND CAST(b.HoraFinal AS Time)
+ORDER BY a.Fecha
