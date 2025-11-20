@@ -92,9 +92,137 @@ INSERT Bodega(Numero, Nombre, AreaEnMetros, FechaRegistro)
 VALUES(8,'Bodega Tegucigalpa',200,'2025/11/18')
 --en el ejemplo anterior ignoramos el valor para Observaciones
 
+--otro ejemplo: ignoremos FechaRegistro
+INSERT Bodega(Numero, Nombre, AreaEnMetros, Observaciones)
+VALUES(9,'Bodega La Ceiba',500,'para almacenar producto importado por mar')
+
+--otro ejemplo: ignoremos FechaRegistro y Observaciones
+INSERT Bodega(Numero, Nombre, AreaEnMetros)
+VALUES(10,'Bodega Yoro',300)
+
+--Tambien es posible no mencionar la columnas (por correspondencia) y poner NULL a los values
+--para las columnas opcionales.
+INSERT Bodega VALUES(11,'Bodega abandonada',50,NULL,NULL)
+--o tambien indicando las columnas:
+INSERT Bodega(Numero, Nombre, AreaEnMetros, Observaciones, FechaRegistro)
+VALUES(12,'Bodega en ruinas',10,NULL,NULL)
+
+--INSERT Multiregistro ----------------------------------------------
+--es posible tambien agregar varios registros mediante una sola definicion de INSERT
+--el siguiente ejemplo agrega varios registros por correspondencia:
+INSERT Bodega
+VALUES
+(13,'Bodega Puerto Cortés',1000,'Para desembarco','2025/11/20'),
+(14,'Bodega La Masica',200.5,NULL,'2025/11/20'),
+(15,'Bodega El Rodeo',400.1,'Cosas Varias','2025/11/20'),
+(16,'Bodega El Carmen',300,'Equipo de mantenimiento',NULL),
+(17,'Bodega Rivera Hernandez',100,NULL,NULL)
+
+--otro ejemplo; pero indicando las columnas:
+INSERT Bodega(Numero, Nombre, AreaEnMetros, Observaciones, FechaRegistro)
+VALUES
+(18,'Bodega en la zona negativa',30,NULL,'2025/11/20'),
+(19,'Bodega Express',100.25,'Para cosas express','2025/11/20'),
+(20,'Bodega Islas',400,NULL,NULL)
+
+--un ejemplo mas:
+INSERT Bodega(Numero,Nombre,AreaEnMetros)
+VALUES
+(21,'Bodega Alfa',70.5),
+(22,'Bodega Beta',300),
+(23,'Bodega Omega',122.8)
+
+/*Insercion por medio del resultado de una consulta -----------------------
+Es posible volcar el resultadode una consulta SELECT hacia un INSERT
+de tabla.
+IMPORTANTE: los datos de la consulta deben de ser compatibles con el tipo
+de dato de cada columna en la tabla donde se va a insertar.*/
 SELECT * FROM Bodega
-sp_help Bodega
+SELECT * FROM Cliente
 
+--Debe diseñar su consulta (origen) de tal manera que las columnas de la misma
+--concuerden con las columnas del INSERT para la tabla destino.
+INSERT BaleadasGPT.dbo.Bodega(Numero, Nombre, AreaEnMetros,Observaciones,FechaRegistro)
+SELECT ClienteID*100, TRIM(Nombre), 100, Comentarios, Nacimiento FROM Cliente
 
+--Ahora vamos a insertar datos desde otra base de datos (siempre y cuando esten en el mismo server)
+--primero previsualice las tablas origen y destino
+SELECT * FROM BaleadasGPT.dbo.Bodega
+SELECT * FROM AdventureWorks.Sales.Store
 
+--consulta:
+SELECT * FROM BaleadasGPT.dbo.Bodega
+SELECT TOP(5) SalesPersonID*10, Name, 0, NULL, ModifiedDate FROM AdventureWorks.Sales.Store
 
+--insercion:
+INSERT BaleadasGPT.dbo.Bodega
+SELECT TOP(5) SalesPersonID*10, Name, 0, NULL, ModifiedDate FROM AdventureWorks.Sales.Store
+
+SELECT * FROM Bodega
+
+/*INSERT cuando existe un campo autonumerico o identity --------------------------------
+Algunas tablas cuentan con campos que son autonumerados por
+el propio motor de base de datos, aqui se debe tener ciertas consideraciones:*/
+
+--Primero, crearemos una tabla que lleve un campo autonumerico
+CREATE TABLE Profesion(
+	ProfesionID bigint NOT NULL IDENTITY(1,1),
+	Nombre varchar(50) NOT NULL,
+	SalarioPromedio decimal(12,2) NULL,
+	PRIMARY KEY(ProfesionID)
+)
+GO
+
+DROP TABLE Profesion
+GO
+
+sp_help Profesion
+GO
+
+--Insercion por correspondencia
+INSERT Profesion VALUES ('Programador',80000)
+/*Observe que no se coloco VALUES a la columna ProfesionID,
+esto se debe a que dicha columna es Identity.*/
+
+--Mas ejemplos:
+INSERT Profesion VALUES('Chef',30000)
+INSERT Profesion VALUES('Guardia de Seguridad',25000)
+INSERT Profesion VALUES('Astronauta',NULL)
+
+--si llega a fallar una insercion, la base de datos perderá ese numero
+--esto es considerado una desventaja.
+INSERT Profesion VALUES('Hojalatero','esto deberia ser un numero')
+--insercion correcta:
+INSERT Profesion VALUES('Hojalatero',20000)
+--observe que se perdio un numero por causa del error
+SELECT * FROM Profesion
+
+--insert multiregistro
+INSERT Profesion
+VALUES
+('Policia',30000),
+('Medico',NULL),
+('Docente',40000)
+
+--Insercion, indicando las columnas
+INSERT Profesion(Nombre,SalarioPromedio)
+VALUES('Gerente',50000)
+--no se meciona la columna identity
+
+INSERT Profesion(Nombre)
+VALUES('Taxista')
+
+INSERT Profesion(Nombre, SalarioPromedio)
+VALUES
+('Albañil',NULL),
+('Etrenador Pokémon',70000),
+('Bartender',45000),
+('Diputado',0)
+
+INSERT Profesion(Nombre)
+VALUES
+('Acrobata'),
+('Gamer'),
+('Trailero')
+
+SELECT * FROM Profesion
